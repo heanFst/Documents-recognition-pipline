@@ -10,11 +10,7 @@ description: >
   documents to Markdown first, then reads the Markdown — never reads raw binaries.
   Includes OCR awareness for scanned PDFs and image-only content, automatic
   quality checks, and progressive reading for long documents.
-compatibility:
-  - Python 3.10+
-  - markitdown (pip install 'markitdown[all]')
-  - scripts/ingest_document.py
-  - scripts/inspect_document.py
+compatibility: Python 3.10+, markitdown, scripts/ingest_document.py, scripts/inspect_document.py
 ---
 
 # Document Pipeline Skill
