@@ -160,18 +160,67 @@ def remove_artifact_lines(lines: list[str]) -> list[str]:
     return result
 
 
+# Stop converting headings after these markers (raw text before promotion)
+STOP_WORDS: set[str] = {"References", "Appendix", "Appendices"}
+
+# Section title starters for single-number patterns
+# Only promote "N Title" if Title starts with one of these words AND is reasonably short
+SECTION_STARTERS: set[str] = {
+    "Introduction", "Related", "Background", "Preliminaries", "Method",
+    "Approach", "Architecture", "Model", "Framework", "Algorithm",
+    "Experiment", "Evaluation", "Result", "Discussion", "Conclusion",
+    "Limitation", "Future", "Broader", "Ethics", "Training", "Implementation",
+    "Inference", "Dataset", "Data", "Setup", "Ablation", "Acknowledgment",
+    "Appendix", "Reference", "Overview", "Analysis", "Formulation",
+}
+
+
 def convert_section_headings(lines: list[str]) -> list[str]:
-    """Convert numbered section titles and known section names to markdown headings."""
+    """Convert section titles to proper markdown headings.
+
+    For single-number patterns ("N Title"), only promotes if Title starts with a
+    known section starter AND is short (< 50 chars). This avoids matching
+    affiliation markers like "1 School of..." or "2 Future Network...".
+
+    Stops promoting new headings after References or Appendix is encountered.
+    """
     result = []
+    stopped = False
+    promoted_once: set[str] = set()  # Track sections already promoted to avoid duplicates
     for line in lines:
-        m = RE_SECTION.match(line.strip())
-        if m and len(line.strip()) < 120:
-            result.append(heading_level(m.groups()))
-        elif line.strip() in KNOWN_SECTIONS:
-            # Promote known unnumbered section titles to ## headings
-            result.append(f"## {line.strip()}")
-        else:
-            result.append(line)
+        stripped = line.strip()
+
+        # Check if this is a stop marker (References/Appendix) - promote it AND stop
+        if stripped in STOP_WORDS:
+            result.append(f"## {stripped}")
+            stopped = True
+            continue
+
+        if not stopped:
+            m = RE_SECTION.match(stripped)
+            if m and len(stripped) < 120:
+                groups = m.groups()
+                num_levels = sum(1 for i in range(4) if groups[i] is not None)
+                if num_levels >= 2:
+                    # Multi-number patterns (2.1, 3.2.1) are always safe
+                    result.append(heading_level(groups))
+                else:
+                    # Single-number pattern: check length and first word
+                    title = groups[4].strip()
+                    first_word = title.split()[0] if title.split() else ""
+                    if len(title) < 50 and first_word in SECTION_STARTERS:
+                        result.append(heading_level(groups))
+                        promoted_once.add(first_word)
+                    else:
+                        result.append(line)
+                continue
+            elif stripped in KNOWN_SECTIONS and stripped not in promoted_once:
+                # Only promote each known section once (avoid table-artifact duplicates)
+                result.append(f"## {stripped}")
+                promoted_once.add(stripped)
+                continue
+
+        result.append(line)
     return result
 
 
