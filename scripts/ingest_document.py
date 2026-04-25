@@ -194,6 +194,26 @@ def convert_file(input_path: Path, output_path: Path) -> tuple[bool, str, str]:
     return False, error, "markitdown-cli"
 
 
+def postprocess_markdown(md_path: Path) -> None:
+    """
+    Run post-processing on the converted markdown file to improve structure.
+    Strips TOC artifacts, converts section numbers to headings, removes
+    table-artifact headings. Silently skipped if postprocess_md.py not found.
+    """
+    script = Path(__file__).resolve().parent / "postprocess_md.py"
+    if not script.exists():
+        return
+    try:
+        subprocess.run(
+            [sys.executable, str(script), str(md_path)],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except Exception:
+        pass
+
+
 # ── Quality Control ─────────────────────────────────────────────────────────
 def is_binary_ext(ext: str) -> bool:
     """Check if the extension is for a file type that produces text."""
@@ -202,8 +222,8 @@ def is_binary_ext(ext: str) -> bool:
 
 
 def has_heading_structure(text: str) -> bool:
-    """Check if markdown text contains heading markers."""
-    return bool(re.search(r"^#{1,6}\s", text, re.MULTILINE))
+    """Check if markdown text contains proper heading markers (## or deeper)."""
+    return bool(re.search(r"^#{2,6}\s", text, re.MULTILINE))
 
 
 REPLACEMENT_CHAR = "�"
@@ -250,7 +270,7 @@ def run_qc(source_path: Path, md_path: Path, ext: str) -> list[str]:
     if ratio > 0.05:
         warnings_list.append(f"warning: POSSIBLE_ENCODING_OR_OCR_ERROR (garbled ratio {ratio:.3f})")
 
-    # QC-E: Weak structure for document types
+    # QC-E: Weak structure for document types (only count ##+ headings)
     if ext.lower() in {".pdf", ".pptx", ".docx"} and not has_heading_structure(text):
         warnings_list.append("warning: WEAK_STRUCTURE")
 
@@ -356,6 +376,9 @@ def process_single_file(
             shutil.copy2(md_path, failed_path)
 
         return "FAILED", sha256_prefix
+
+    # ── Post-process (improve structure, strip artifacts) ──
+    postprocess_markdown(md_path)
 
     # ── Quality Control ──
     qc_warnings = run_qc(source_path, md_path, ext)
