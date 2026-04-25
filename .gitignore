@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.egg
+
+# Generated documents
+docs/md/
+docs/meta/
+docs/assets/
+docs/failed/
+docs/index.jsonl
+
+# Test workspace
+document-pipeline-workspace/
+
+# OS
+.DS_Store
+Thumbs.db

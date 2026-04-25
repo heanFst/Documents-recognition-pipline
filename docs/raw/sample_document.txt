@@ -1,0 +1,23 @@
+This is a sample document for testing the MarkItDown pipeline.
+
+It contains multiple paragraphs to verify the conversion process.
+
+## Section 1: Introduction
+
+The document pipeline converts various file formats to Markdown format.
+This allows Claude Code to read and analyze the content without needing
+to directly parse binary file formats.
+
+## Section 2: Technical Details
+
+Key features of the pipeline:
+- SHA256 checksum tracking
+- JSONL-based index
+- Metadata for each document
+- Quality control checks
+- Graceful error handling
+
+## Section 3: Conclusion
+
+This sample demonstrates the ingestion pipeline.
+The pipeline should convert this file to Markdown with proper heading structure.
