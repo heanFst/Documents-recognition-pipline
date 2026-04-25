@@ -8,6 +8,12 @@
 <h1 align="center">Documents Recognition Pipeline</h1>
 
 <p align="center">
+  <b>Document to Markdown pipeline — powered by Microsoft MarkItDown.</b>
+  <br>
+  Batch convert PDF, DOCX, PPTX, XLSX, images & audio with automatic quality control.
+</p>
+
+<p align="center">
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-usage">Usage</a> •
   <a href="#-directory-structure">Structure</a> •
